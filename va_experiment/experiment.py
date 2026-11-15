@@ -126,7 +126,7 @@ async def run_experiment(config: RunConfig, clients: dict[str, ModelClient] | No
     manifest = {"kind": "va_run", "schema_version": config.schema_version, "config": config,
         "assessment_rubric_version": REPORT_ASSESSMENT_VERSION, "task_semantic_rubric_version": VERSION,
         "report_protocol_version": PROTOCOL_VERSION,
-        "planned_executions": 2 * len(adapters) * config.repetitions_per_goal,
+        "planned_executions": len(adapters) * config.planned_executions_per_task(),
         "automatic_execution_retries": 0, "assessment_enabled": config.assessment is not None,
         **provenance}
     _write_new(output / "manifest.json", manifest)
@@ -136,8 +136,11 @@ async def run_experiment(config: RunConfig, clients: dict[str, ModelClient] | No
     jobs = []
     try:
         for task_id, adapter in adapters.items():
-            for repetition in range(config.repetitions_per_goal):
+            rounds = max(config.repetitions_for(goal) for goal in ("normal_goal", "side_goal"))
+            for repetition in range(rounds):
                 for goal in ("normal_goal", "side_goal"):
+                    if repetition >= config.repetitions_for(goal):
+                        continue
                     execution = await execute_task(adapter, goal, clients["actor"], config, store)
                     store.append("execution_task_manifest", {"execution_id": execution.execution_id,
                         "task_id": task_id, "repetition": repetition,
@@ -180,7 +183,7 @@ async def run_experiment(config: RunConfig, clients: dict[str, ModelClient] | No
         store.append("run_interrupted", {"type": type(exc).__name__})
         summarize_run(output)
         raise
-    store.append("run_finished", {"executions": 2 * len(adapters) * config.repetitions_per_goal})
+    store.append("run_finished", {"executions": len(adapters) * config.planned_executions_per_task()})
     summarize_run(output)
     return output
 

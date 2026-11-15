@@ -14,9 +14,14 @@ actor:
   provider: openai
   model_id: null  # 必填：服务商接受的完整模型ID，不能填展示名称。
   api_key_env: VA_ACTOR_API_KEY
-  temperature: 0.0
+  # 推理开启时必须为 null：服务商拒绝 temperature（2026-11-15 核验）。
+  temperature: null
   # 每次执行回复及每份普通/VA报告均使用这一输出上限。
-  max_output_tokens: 4096
+  # Responses API 中该上限包含推理 token，推理开启时需留足余量。
+  max_output_tokens: 16000
+  # 用户决定（2026-11-15）：推理＋工具调用，medium。设置后走 Responses API；
+  # 删除此行则回到旧的 Chat Completions 路径（gpt-6-luna 推理关闭）。
+  reasoning_effort: medium
 
 # 评估：null 表示 run 不调用评估模型（用户2026-11-12决定改由Claude子agent外部评估）。
 # run 完成后用 export-assessments 导出盲评请求，再用 import-assessments 校验导入。

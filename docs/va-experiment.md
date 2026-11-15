@@ -64,6 +64,13 @@ Supported providers are `openai` and `anthropic` for live CLI calls. The interna
 Both `actor` and `assessment` require `provider`, `model_id`, `api_key_env`,
 `temperature`, and `max_output_tokens`. The run also requires `schema_version`,
 `task_ids`, `repetitions_per_goal`, `max_actor_turns`, `output_dir`, and `order_seed`.
+An optional `reasoning_effort` (`none`, `low`, `medium`, `high`) on an OpenAI model
+routes calls through the Responses API, which allows function tools together with
+reasoning (gpt-6-luna rejects that combination in Chat Completions). With reasoning
+on, `temperature` must be `null` and `max_output_tokens` includes reasoning tokens.
+Calls are stateless (`store: false`); each assistant message keeps the provider's
+verbatim output items, including encrypted reasoning, in `provider_output`, and later
+turns and both report branches replay them. Blind evidence bundles exclude actor messages.
 `api_key_env` is the name of an environment variable holding the credential, never
 the credential itself. Supply those environment variables through your local
 secret-management mechanism. Validation does not require their values or construct

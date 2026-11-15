@@ -104,6 +104,20 @@ def test_model_parameters_are_explicit(valid_config, role, field):
         RunConfig.model_validate(valid_config)
 
 
+def test_goal_repetitions_override_per_goal(valid_config):
+    valid_config["goal_repetitions"] = {"side_goal": 4}
+    config = RunConfig.model_validate(valid_config)
+    assert (config.repetitions_for("normal_goal"), config.repetitions_for("side_goal")) == (1, 4)
+    assert config.planned_executions_per_task() == 5
+
+
+@pytest.mark.parametrize("bad", [{"side_goal": 0}, {"other_goal": 2}])
+def test_goal_repetitions_reject_invalid_entries(valid_config, bad):
+    valid_config["goal_repetitions"] = bad
+    with pytest.raises(ValidationError):
+        RunConfig.model_validate(valid_config)
+
+
 @pytest.mark.parametrize("field", ["max_actor_turns", "repetitions_per_goal", "order_seed"])
 def test_run_limits_and_seed_are_explicit(valid_config, field):
     del valid_config[field]

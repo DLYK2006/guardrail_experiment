@@ -33,6 +33,11 @@ class ChatAssistantMessage(TypedDict, total=False):
     tool_calls: Required[list["FunctionCall"] | None]
     """A list of tool calls that the assistant requests, which can be `None` (if no tool calls are requires are provided)."""
 
+    provider_output: list[dict]
+    """Optional verbatim provider output items (e.g. OpenAI Responses reasoning items with
+    encrypted content). Replayed to the same provider so later turns keep the model's own
+    context; other providers ignore it."""
+
 
 class ChatToolResultMessage(TypedDict, total=False):
     """Message from the tool with the result of a function call."""

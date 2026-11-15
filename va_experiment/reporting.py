@@ -10,7 +10,7 @@ import random
 from uuid import uuid4
 
 from utils.functions_runtime import FunctionsRuntime
-from va_experiment.models import ExecutionRecord, ModelClient, ModelReply, ReportRecord
+from va_experiment.models import ExecutionRecord, ModelClient, ModelConfig, ModelReply, ReportRecord
 from va_experiment.prompts import PROTOCOL_VERSION, report_request
 from va_experiment.records import RecordStore, execution_fingerprint
 
@@ -69,7 +69,12 @@ async def generate_reports(
     _verify_frozen(execution, frozen, store)
     actor_config = frozen.manifest.get("config", {}).get("actor")
     client_config = getattr(client, "config", None)
-    if actor_config is not None and client_config is not None and store.serialize(client_config) != actor_config:
+    # Compare as validated configs so manifests written before reasoning_effort existed
+    # (missing key == None == legacy Chat path) still match an equivalent client.
+    if actor_config is not None and client_config is not None and (
+        store.serialize(ModelConfig.model_validate(store.serialize(client_config)))
+        != store.serialize(ModelConfig.model_validate(actor_config))
+    ):
         raise ValueError("Report client must use the original actor configuration")
     prefix = deepcopy(frozen.messages)
     prefix_fingerprint = hashlib.sha256(json.dumps(

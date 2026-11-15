@@ -125,6 +125,10 @@ def create_model_client(config: ModelConfig) -> ModelClient:
     """Construct only the explicit provider/model, using the named credential."""
     if config.provider == "fake":
         return LegacyModelClient(_UnscriptedFake(), config)
+    if config.reasoning_effort is not None:
+        # Function tools + reasoning require the Responses API (see responses_client).
+        from va_experiment.responses_client import ResponsesModelClient
+        return ResponsesModelClient(config)
     if config.provider == "openai" and config.model_id in {"o1", "o3-mini", "o3", "o4-mini"}:
         raise ModelCapabilityError("Legacy OpenAI adapter cannot honor explicit temperature for this model")
     api_key = os.environ.get(config.api_key_env)

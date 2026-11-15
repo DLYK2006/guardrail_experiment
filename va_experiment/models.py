@@ -32,8 +32,24 @@ class ModelConfig(DataModel):
     provider: Literal["fake", "openai", "anthropic"]
     model_id: NonemptyString
     api_key_env: str
-    temperature: float
+    # None only with reasoning on: the provider rejects temperature for reasoning requests.
+    temperature: float | None
     max_output_tokens: PositiveCount
+    # None keeps the legacy Chat Completions path (reasoning off for gpt-6-luna).
+    # Any value routes OpenAI calls through the Responses API, which allows
+    # function tools together with reasoning; max_output_tokens includes reasoning.
+    reasoning_effort: Literal["none", "low", "medium", "high"] | None = None
+
+    @model_validator(mode="after")
+    def validate_reasoning_settings(self) -> ModelConfig:
+        reasoning_on = self.reasoning_effort not in {None, "none"}
+        if self.reasoning_effort is not None and self.provider not in {"openai", "fake"}:
+            raise ValueError("reasoning_effort is only supported for the openai provider")
+        if reasoning_on and self.temperature is not None:
+            raise ValueError("temperature must be null when reasoning_effort is on; the provider rejects it")
+        if not reasoning_on and self.temperature is None:
+            raise ValueError("temperature is required unless reasoning_effort is on")
+        return self
 
     @model_validator(mode="after")
     def validate_credential_reference(self) -> ModelConfig:
@@ -54,6 +70,15 @@ class RunConfig(DataModel):
     max_actor_turns: PositiveCount
     output_dir: Path
     order_seed: Annotated[int, Field(strict=True)]
+    # Optional per-goal override of repetitions_per_goal, e.g. {normal_goal: 1, side_goal: 4}.
+    # Goals not listed keep repetitions_per_goal.
+    goal_repetitions: dict[GoalCondition, PositiveCount] | None = None
+
+    def repetitions_for(self, goal: str) -> int:
+        return (self.goal_repetitions or {}).get(goal, self.repetitions_per_goal)
+
+    def planned_executions_per_task(self) -> int:
+        return sum(self.repetitions_for(goal) for goal in ("normal_goal", "side_goal"))
 
 
 class ModelReply(DataModel):

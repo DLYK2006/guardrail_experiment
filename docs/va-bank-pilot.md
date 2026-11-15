@@ -29,7 +29,8 @@ Copy-Item configs/va_bank_pilot.example.yaml configs/va_bank_pilot.local.yaml
 | `repetitions_per_goal` | 每种目标重复几次；起步建议1 |
 | `max_actor_turns` | 每条执行最多几次actor回复；起步建议40 |
 | 两个`max_output_tokens` | 每次模型回复的最大输出；模板建议actor4096、assessment8192 |
-| 两个`temperature` | 模板建议0；所选模型必须实际支持显式温度参数 |
+| 两个`temperature` | 推理关闭时模板建议0；推理开启时actor必须为`null`（服务商拒绝该参数），所选模型必须实际支持显式温度参数 |
+| actor`reasoning_effort` | 可选：`none`/`low`/`medium`/`high`。设置后actor改走Responses API，可同时使用推理和工具调用（gpt-6-luna在Chat Completions中不允许两者同用）。当前正式配置为`medium`（用户决定，2026-11-15）；此时`max_output_tokens`包含推理token，建议16000。每条assistant消息在`provider_output`中保存服务商原始输出项（含加密推理），后续轮次和两份报告原样回传，报告因此带着执行时的推理上下文；盲评证据包不含actor消息 |
 
 这些数值是可编辑的起步建议，不是已经选定的正式实验预算。
 正常／违规目标以及普通／VA报告自动共用同一个actor配置，无须准备四个actor。
