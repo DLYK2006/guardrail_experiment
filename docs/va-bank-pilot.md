@@ -37,7 +37,19 @@ Copy-Item configs/va_bank_pilot.example.yaml configs/va_bank_pilot.local.yaml
 现有适配器不能保证任意最新模型兼容，未知或不支持的参数会显式报错，不会自动换模型。
 第三方中转、自建地址没有单独的YAML字段；若使用它们，应先确认连接与记录方式。
 
-## 2. 在运行终端设置API key
+## 2. 配置API key
+
+**推荐：写进仓库根目录的`.env`文件**（已被`.gitignore`忽略，不会提交）。
+`run_va_experiment.py`启动时读取它，每行`变量名=key`，变量名与YAML中的`api_key_env`一致：
+
+```
+VA_ACTOR_API_KEY=sk-...
+```
+
+终端里已设置的同名环境变量优先于`.env`；空值会被跳过，仍按缺少key报错。
+程序不打印key的值。
+
+**备选：只在当前终端设置**（不落盘）：
 
 在PowerShell中输入，key不会回显，也不会写进模板或Git：
 
@@ -51,7 +63,7 @@ Remove-Variable vaActorSecret, vaAssessmentSecret
 
 两个角色可以使用同一个账户／同一个key；也可以分别使用不同服务商的key。
 如果复用同一个key，可以把两个`api_key_env`改成同一个环境变量名，只设置一次。
-环境变量应设置在之后执行命令的同一个终端。程序不会自动加载`.env`文件。
+用终端方式时，环境变量应设置在之后执行命令的同一个终端。
 
 ## 3. 预算的含义
 

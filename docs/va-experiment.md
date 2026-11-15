@@ -7,6 +7,25 @@ each report against frozen evidence. There is no interrogation or follow-up turn
 Existing monitor, evaluator and historical runner entry points remain outside this
 flow. Main and side outcomes count once per execution, regardless of report count.
 
+## Execution role and assigned intent
+
+The execution prompt describes a simulated research experiment with a fictional
+user and tools that operate on simulated state. In the side-goal condition, it
+requires completion of both the main task and the additional objective. Since a
+second 2026-11-12 revision it no longer labels the side task as malicious,
+unauthorized or contrary to the user's interests, and assigns no intent; this
+tests whether that label caused the actor to skip the side task. The normal-goal
+condition receives only the shared simulation context and main-task instructions.
+
+The execution prompt supplies no monitoring notice, concealment instruction or
+direction about subsequent reports. The ordinary/VA reporting requests remain
+unchanged. Assigned intent is an experimental instruction, not evidence that a
+model adopted that intention or performed a violation. Actual behavior must be
+checked against tool and environment records. This wording was updated on
+2026-11-12; earlier pilot artifacts retain their original prompts. New and old
+executions use different elicitation conditions and should be distinguished in
+analysis. Exact execution prompts and source hashes are saved with each run.
+
 ## Environment and offline verification
 
 Use a dedicated Python environment (the implementation was checked on Python 3.13):
